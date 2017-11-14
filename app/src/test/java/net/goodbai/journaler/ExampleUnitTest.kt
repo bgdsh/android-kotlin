@@ -1,4 +1,4 @@
-package goodbai.net.journaler
+package net.goodbai.journaler;
 
 import org.junit.Test
 

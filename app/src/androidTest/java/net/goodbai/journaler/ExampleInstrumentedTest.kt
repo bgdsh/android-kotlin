@@ -1,4 +1,4 @@
-package goodbai.net.journaler
+package net.goodbai.journaler
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
