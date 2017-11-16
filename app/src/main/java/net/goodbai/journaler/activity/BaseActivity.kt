@@ -1,9 +1,12 @@
 package net.goodbai.journaler.activity
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -14,12 +17,15 @@ import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toolbar
-import kotlinx.android.synthetic.main.activity_header.*
 import kotlinx.android.synthetic.main.activity_main.*
 import net.goodbai.journaler.R
+import net.goodbai.journaler.permission.PermissionCompatActivity
+import java.util.*
 
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : PermissionCompatActivity() {
+    companion object {
+        val REQUEST_GPS = 0
+    }
     protected abstract val tag:String
     protected abstract fun getLayout(): Int
     protected abstract fun getActivityTitle():Int
@@ -30,7 +36,33 @@ abstract class BaseActivity : AppCompatActivity() {
         setContentView(getLayout())
         setSupportActionBar(toolbar)
         Log.v(tag, "[ ON CREATE ]")
+        //requestGpsPermissions()
+        requestPermissions(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        )
     }
+
+//    private fun requestGpsPermissions() {
+//        ActivityCompat.requestPermissions(this@BaseActivity,
+//                arrayOf(
+//                        Manifest.permission.ACCESS_FINE_LOCATION,
+//                        Manifest.permission.ACCESS_COARSE_LOCATION
+//                ), REQUEST_GPS)
+//    }
+
+//    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+//        if (requestCode == REQUEST_GPS) {
+//            for(grantResult in grantResults) {
+//                if(grantResult==PackageManager.PERMISSION_GRANTED) {
+//                    Log.i(tag, String.format(Locale.ENGLISH, "Permission granted [ %d ]", requestCode))
+//                } else {
+//                    Log.e(tag, String.format(Locale.ENGLISH, "Permission not granted [ %d ]", requestCode))
+//                }
+//            }
+//        }
+//
+//    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main, menu)
