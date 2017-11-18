@@ -1,10 +1,12 @@
 package net.goodbai.journaler.activity
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.support.v4.view.GravityCompat
+import android.support.v4.view.ViewPager
 import android.util.Log
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
@@ -13,6 +15,8 @@ import net.goodbai.journaler.R
 import net.goodbai.journaler.fragment.ItemsFragment
 import net.goodbai.journaler.navigation.NavigationDrawerAdapter
 import net.goodbai.journaler.navigation.NavigationDrawerItem
+import net.goodbai.journaler.preferences.PreferencesConfiguration
+import net.goodbai.journaler.preferences.PreferencesProvider
 
 class MainActivity : BaseActivity() {
     override fun getActivityTitle(): Int = R.string.app_name
@@ -21,7 +25,27 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val provider = PreferencesProvider()
+        val config = PreferencesConfiguration("journaler_prefs", Context.MODE_PRIVATE)
+        val preferences = provider.obtain(config, this)
+
         pager.adapter = ViewPagerAdapter(supportFragmentManager)
+        pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener{
+            override fun onPageScrollStateChanged(state: Int) {
+            }
+
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+            }
+
+            override fun onPageSelected(position: Int) {
+                Log.v(tag, "Page [ $position ]")
+                preferences.edit().putInt(keyPagePosition, position).apply()
+            }
+
+        })
+        val pagerPosition = preferences.getInt(keyPagePosition, 0)
+        pager.setCurrentItem(pagerPosition, true)
+
         val menuItems = mutableListOf<NavigationDrawerItem>()
         val today = NavigationDrawerItem(
                 getString(R.string.today),
@@ -45,25 +69,12 @@ class MainActivity : BaseActivity() {
                     pager.setCurrentItem(3, true)
                 }
         )
-
         menuItems.add(today)
         menuItems.add(next7Days)
         menuItems.add(todos)
         menuItems.add(notes)
         val navigationDrawerAdapter = NavigationDrawerAdapter(this, menuItems)
         left_drawer.adapter = navigationDrawerAdapter
-//        val fragment = ItemsFragment()
-//        supportFragmentManager
-//                .beginTransaction()
-//                .add(R.id.fragment_container, fragment)
-//                .commit()
-//        filter_menu.text = "H"
-//        filter_menu.setOnClickListener {
-//            val userManualFrg = ManualFragment()
-//            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, userManualFrg)
-//                    .addToBackStack("User manual")
-//                    .commit()
-//        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -85,5 +96,7 @@ class MainActivity : BaseActivity() {
         override fun getItem(position: Int): Fragment = ItemsFragment()
         override fun getCount(): Int = 5
     }
+
+    private val keyPagePosition = "keyPagePosition"
 }
 
