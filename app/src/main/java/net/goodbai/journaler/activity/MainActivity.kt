@@ -5,16 +5,12 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.support.v4.view.GravityCompat
-import android.support.v4.view.PagerAdapter
 import android.util.Log
 import android.view.MenuItem
-import android.view.View
-import kotlinx.android.synthetic.main.activity_header.*
 import kotlinx.android.synthetic.main.activity_main.*
 import net.goodbai.journaler.R.layout.activity_main
 import net.goodbai.journaler.R
 import net.goodbai.journaler.fragment.ItemsFragment
-import net.goodbai.journaler.fragment.ManualFragment
 import net.goodbai.journaler.navigation.NavigationDrawerAdapter
 import net.goodbai.journaler.navigation.NavigationDrawerItem
 

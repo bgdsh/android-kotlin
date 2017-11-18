@@ -3,6 +3,13 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <EditText
+        android:id="@+id/note_title"
+        style="@style/edit_text_transparent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/title"
+        android:padding="@dimen/form_padding"/>
+    <EditText
         style="@style/edit_text_grey_text"
         android:id="@+id/note_content"
         android:layout_width="match_parent"
