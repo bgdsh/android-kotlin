@@ -3,7 +3,10 @@ package net.goodbai.journaler
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.util.Log
+import net.goodbai.journaler.receiver.NetworkReceiver
 import net.goodbai.journaler.service.MainService
 
 
@@ -11,6 +14,7 @@ class Journaler : Application() {
     companion object {
         var ctx: Context? = null
         val tag = "Journaler"
+        val networkReceiver = NetworkReceiver()
     }
 
     override fun onCreate() {
@@ -18,6 +22,8 @@ class Journaler : Application() {
         ctx = this.applicationContext
         Log.v(tag, "[ ON CREATE ]")
         // startService()
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(networkReceiver, filter)
     }
 
     override fun onLowMemory() {
