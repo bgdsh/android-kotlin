@@ -81,6 +81,11 @@ class MainActivity : BaseActivity() {
         menuItems.add(synchronize)
         val navigationDrawerAdapter = NavigationDrawerAdapter(this, menuItems)
         left_drawer.adapter = navigationDrawerAdapter
+
+
+        // Service
+        val serviceIntent = Intent(this, MainService::class.java)
+        startService(serviceIntent)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

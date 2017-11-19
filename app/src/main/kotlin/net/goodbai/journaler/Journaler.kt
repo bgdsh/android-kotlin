@@ -17,13 +17,13 @@ class Journaler : Application() {
         super.onCreate()
         ctx = this.applicationContext
         Log.v(tag, "[ ON CREATE ]")
-        startService()
+        // startService()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
         Log.w(tag, "[ ON LOW MEMORY]")
-        stopService()
+        // stopService()
     }
 
     override fun onTrimMemory(level: Int) {
