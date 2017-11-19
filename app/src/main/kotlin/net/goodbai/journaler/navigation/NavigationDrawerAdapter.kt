@@ -1,6 +1,7 @@
 package net.goodbai.journaler.navigation
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,9 @@ class NavigationDrawerAdapter(
         val ctx: Context,
         val items: List<NavigationDrawerItem>
 ):BaseAdapter(){
+
+    private val tag = "Nav. drw. adptr."
+
     override fun getItem(position: Int): Any = items.get(position)
 
     override fun getItemId(position: Int): Long = 0L
@@ -29,7 +33,12 @@ class NavigationDrawerAdapter(
         val title = view.findViewById<Button>(R.id.drawer_item)
         title.text = item.title
         title.setOnClickListener {
-            item.onClick.run()
+            if (item.enabled) {
+                item.onClick.run()
+            } else {
+                Log.w(tag, "Item is disabled: $item")
+            }
+
         }
         return view
     }

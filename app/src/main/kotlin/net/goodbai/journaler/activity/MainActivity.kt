@@ -1,7 +1,11 @@
 package net.goodbai.journaler.activity
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
@@ -17,6 +21,7 @@ import net.goodbai.journaler.navigation.NavigationDrawerAdapter
 import net.goodbai.journaler.navigation.NavigationDrawerItem
 import net.goodbai.journaler.preferences.PreferencesConfiguration
 import net.goodbai.journaler.preferences.PreferencesProvider
+import net.goodbai.journaler.service.MainService
 
 class MainActivity : BaseActivity() {
     override fun getActivityTitle(): Int = R.string.app_name
@@ -30,7 +35,7 @@ class MainActivity : BaseActivity() {
         val preferences = provider.obtain(config, this)
 
         pager.adapter = ViewPagerAdapter(supportFragmentManager)
-        pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener{
+        pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {
             }
 
@@ -49,7 +54,7 @@ class MainActivity : BaseActivity() {
         val menuItems = mutableListOf<NavigationDrawerItem>()
         val today = NavigationDrawerItem(
                 getString(R.string.today),
-                Runnable { pager.setCurrentItem(0,true) }
+                Runnable { pager.setCurrentItem(0, true) }
         )
         val next7Days = NavigationDrawerItem(
                 getString(R.string.next_seven_days),
@@ -73,6 +78,7 @@ class MainActivity : BaseActivity() {
         menuItems.add(next7Days)
         menuItems.add(todos)
         menuItems.add(notes)
+        menuItems.add(synchronize)
         val navigationDrawerAdapter = NavigationDrawerAdapter(this, menuItems)
         left_drawer.adapter = navigationDrawerAdapter
     }
@@ -92,11 +98,48 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        val intent = Intent(this, MainService::class.java)
+        bindService(intent, serviceConnection, android.content.Context.BIND_AUTO_CREATE)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unbindService(serviceConnection)
+    }
+
     private class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(manager) {
         override fun getItem(position: Int): Fragment = ItemsFragment()
         override fun getCount(): Int = 5
     }
 
     private val keyPagePosition = "keyPagePosition"
+
+    private var service: MainService? = null
+
+    private val synchronize: NavigationDrawerItem by lazy {
+        NavigationDrawerItem(
+                getString(R.string.synchronize),
+                Runnable { service?.synchronize() },
+                false
+        )
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, binder: IBinder?) {
+            if (binder is MainService.MainServiceBinder) {
+                service = binder.getService()
+                service?.let {
+                    synchronize.enabled = true
+                }
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            service = null
+            synchronize.enabled = false
+        }
+    }
 }
 
