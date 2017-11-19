@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("goodbai.net.journaler", appContext.packageName)
+        assertEquals("net.goodbai.journaler", appContext.packageName)
     }
 }
