@@ -1,6 +1,9 @@
 package net.goodbai.journaler.activity
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.location.Location
 import android.location.LocationListener
 import android.os.*
@@ -11,6 +14,7 @@ import android.text.TextWatcher
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_note.*
 import net.goodbai.journaler.R
+import net.goodbai.journaler.database.Crud
 import net.goodbai.journaler.database.Db
 import net.goodbai.journaler.database.Note
 import net.goodbai.journaler.execution.TaskExecutor
@@ -21,7 +25,7 @@ import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-class NoteActivity: ItemActivity() {
+class NoteActivity : ItemActivity() {
     private var note: Note? = null
     private var location: Location? = null
     private var handler: Handler? = null
@@ -60,7 +64,7 @@ class NoteActivity: ItemActivity() {
                 dbIntent.putExtra(DatabaseService.EXTRA_ENTRY, note)
                 dbIntent.putExtra(DatabaseService.EXTRA_OPERATION, MODE.CREATE.mode)
                 startService(dbIntent)
-                sendMessage(true)
+                // sendMessage(true)
 
 //                executor.execute {
 //                    val param = note
@@ -87,6 +91,8 @@ class NoteActivity: ItemActivity() {
             }
         }
 
+
+
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
         }
 
@@ -98,6 +104,17 @@ class NoteActivity: ItemActivity() {
 
     }
     private val executor = TaskExecutor.getInstance(1)
+
+    private val crudOperationListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                val crudResultValue = intent.getIntExtra(Crud.BROADCAST_KEY_CRUD_OPERATION_RESULT, 0)
+                Log.i("crudOperationListener", crudResultValue.toString())
+                sendMessage(crudResultValue == 1)
+            }
+        }
+
+    }
 
     private val threadPoolExecutor = ThreadPoolExecutor(
             3,
@@ -143,7 +160,7 @@ class NoteActivity: ItemActivity() {
     private fun getNoteContent(): String = note_content.text.toString()
     private fun getNoteTitle(): String = note_title.text.toString()
     private fun updateNote() {
-        if (note == null){
+        if (note == null) {
             if (!TextUtils.isEmpty(getNoteTitle()) && !TextUtils.isEmpty(getNoteContent())) {
                 LocationProvider.subscribe(locationListener)
             }
@@ -156,7 +173,7 @@ class NoteActivity: ItemActivity() {
             dbIntent.putExtra(DatabaseService.EXTRA_ENTRY, note)
             dbIntent.putExtra(DatabaseService.EXTRA_OPERATION, MODE.EDIT.mode)
             startService(dbIntent)
-            sendMessage(true)
+            // sendMessage(true)
 
 //            executor.execute {
 //                var result = false
@@ -174,6 +191,7 @@ class NoteActivity: ItemActivity() {
         }
 
     }
+
     private fun sendMessage(result: Boolean) {
         val msg = handler?.obtainMessage()
         if (result) {
@@ -190,7 +208,7 @@ class NoteActivity: ItemActivity() {
     override fun getLayout(): Int = R.layout.activity_note
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handler = object: Handler(Looper.getMainLooper()) {
+        handler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message?) {
                 msg?.let {
                     var color = R.color.vermilion
@@ -204,6 +222,13 @@ class NoteActivity: ItemActivity() {
         }
         note_title.addTextChangedListener(textWatcher)
         note_content.addTextChangedListener(textWatcher)
+        val intentFilter = IntentFilter(Crud.BROADCAST_ACTION)
+        registerReceiver(crudOperationListener, intentFilter)
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(crudOperationListener)
+        super.onDestroy()
     }
 
 }

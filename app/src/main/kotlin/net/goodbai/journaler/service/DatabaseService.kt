@@ -3,6 +3,7 @@ package net.goodbai.journaler.service
 import android.app.IntentService
 import android.content.Intent
 import android.util.Log
+import net.goodbai.journaler.database.Crud
 import net.goodbai.journaler.database.Db
 import net.goodbai.journaler.database.Note
 import net.goodbai.journaler.model.MODE
@@ -36,7 +37,7 @@ class DatabaseService : IntentService("MainIntentService") {
             val note = p0.getParcelableExtra<Note>(EXTRA_ENTRY)
             note?.let {
                 val operation = p0.getIntExtra(EXTRA_OPERATION, -1)
-                when(operation) {
+                when (operation) {
                     MODE.CREATE.mode -> {
                         val result = Db.Note.insert(note) > 0
                         if (result) {
@@ -44,6 +45,7 @@ class DatabaseService : IntentService("MainIntentService") {
                         } else {
                             Log.e(tag, "Not not inserted")
                         }
+                        broadcastResult(result)
                     }
                     MODE.EDIT.mode -> {
                         val result = Db.Note.update(note) > 0
@@ -52,6 +54,7 @@ class DatabaseService : IntentService("MainIntentService") {
                         } else {
                             Log.e(tag, "Not not updated")
                         }
+                        broadcastResult(result)
                     }
                     else -> {
                         Log.w(tag, "Unknown mode [ $operation ]")
@@ -60,5 +63,16 @@ class DatabaseService : IntentService("MainIntentService") {
                 }
             }
         }
+    }
+
+    private fun broadcastResult(result: Boolean) {
+        val intent = Intent()
+        intent.action = Crud.BROADCAST_ACTION
+        intent.putExtra(Crud.BROADCAST_KEY_CRUD_OPERATION_RESULT, if (result) {
+            1
+        } else {
+            0
+        })
+        sendBroadcast(intent)
     }
 }
