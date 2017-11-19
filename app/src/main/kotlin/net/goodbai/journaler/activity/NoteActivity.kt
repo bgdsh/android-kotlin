@@ -2,10 +2,7 @@ package net.goodbai.journaler.activity
 
 import android.location.Location
 import android.location.LocationListener
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
+import android.os.*
 import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.text.TextUtils
@@ -17,6 +14,9 @@ import net.goodbai.journaler.database.Db
 import net.goodbai.journaler.database.Note
 import net.goodbai.journaler.execution.TaskExecutor
 import net.goodbai.journaler.location.LocationProvider
+import java.util.concurrent.LinkedBlockingDeque
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 class NoteActivity: ItemActivity() {
     private var note: Note? = null
@@ -27,13 +27,22 @@ class NoteActivity: ItemActivity() {
             updateNote()
         }
 
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+        override fun beforeTextChanged(p0: CharSequence?, start: Int, count: Int, after: Int) {
         }
 
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+        override fun onTextChanged(p0: CharSequence?, start: Int, before: Int, count: Int) {
+            p0?.let {
+                tryAsync(p0.toString())
+            }
         }
 
     }
+
+    private fun tryAsync(identifier: String) {
+        val tryAsync = TryAsync(identifier)
+        tryAsync.executeOnExecutor(threadPoolExecutor)
+    }
+
     private val locationListener = object : LocationListener {
         override fun onLocationChanged(p0: Location?) {
             p0?.let {
@@ -77,6 +86,47 @@ class NoteActivity: ItemActivity() {
 
     }
     private val executor = TaskExecutor.getInstance(1)
+
+    private val threadPoolExecutor = ThreadPoolExecutor(
+            3,
+            3,
+            1,
+            TimeUnit.SECONDS,
+            LinkedBlockingDeque<Runnable>()
+    )
+
+    private class TryAsync(val identifier: String) : AsyncTask<Unit, Int, Unit>() {
+        private val tag = "TryAsync"
+        override fun onPreExecute() {
+            Log.i(tag, "onPreExecute [ $identifier ]")
+            super.onPreExecute()
+        }
+
+        override fun doInBackground(vararg params: Unit?) {
+            Log.i(tag, "doInBackground [ $identifier ] [ START ]")
+            Thread.sleep(5000)
+            Log.i(tag, "doInBackground [ $identifier ] [ END ]")
+            return Unit
+        }
+
+        override fun onCancelled() {
+            Log.i(tag, "onCancelled [ $identifier ][ END ]")
+            super.onCancelled()
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            val progress = values.first()
+            progress?.let {
+                Log.i(tag, "onProgressUpdate [ $identifier ][ $progress ]")
+            }
+            super.onProgressUpdate(*values)
+        }
+
+        override fun onPostExecute(result: Unit?) {
+            Log.i(tag, "onPostExecute [ $identifier ]")
+            super.onPostExecute(result)
+        }
+    }
 
     private fun getNoteContent(): String = note_content.text.toString()
     private fun getNoteTitle(): String = note_title.text.toString()
