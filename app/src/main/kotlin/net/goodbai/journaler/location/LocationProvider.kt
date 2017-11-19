@@ -69,7 +69,6 @@ object LocationProvider {
             }
         }
 
-
     }
 
     fun subscribe(subscriber: LocationListener): Boolean {

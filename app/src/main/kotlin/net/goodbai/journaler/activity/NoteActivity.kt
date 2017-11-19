@@ -1,5 +1,6 @@
 package net.goodbai.journaler.activity
 
+import android.content.Intent
 import android.location.Location
 import android.location.LocationListener
 import android.os.*
@@ -14,6 +15,8 @@ import net.goodbai.journaler.database.Db
 import net.goodbai.journaler.database.Note
 import net.goodbai.journaler.execution.TaskExecutor
 import net.goodbai.journaler.location.LocationProvider
+import net.goodbai.journaler.model.MODE
+import net.goodbai.journaler.service.DatabaseService
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -51,26 +54,35 @@ class NoteActivity: ItemActivity() {
                 val title = getNoteTitle()
                 val content = getNoteContent()
                 note = Note(title, content, p0)
-                executor.execute {
-                    val param = note
-                    var result = false
-                    param?.let {
-                        result = Db.Note.insert(param) > 0
-                    }
-                    if (result) {
-                        Log.i(tag, "Note inserted.")
-                    } else {
-                        Log.e(tag, "Note not inserted.")
-                    }
 
-                    handler?.post {
-                        var color = R.color.vermilion
-                        if (result) {
-                            color = R.color.green
-                        }
-                        sendMessage(result)
-                    }
-                }
+                //Switching to intent service
+                val dbIntent = Intent(this@NoteActivity, DatabaseService::class.java)
+                dbIntent.putExtra(DatabaseService.EXTRA_ENTRY, note)
+                dbIntent.putExtra(DatabaseService.EXTRA_OPERATION, MODE.CREATE.mode)
+                startService(dbIntent)
+                sendMessage(true)
+
+//                executor.execute {
+//                    val param = note
+//                    var result = false
+//                    param?.let {
+//                        result = Db.Note.insert(param) > 0
+//                    }
+//                    if (result) {
+//                        Log.i(tag, "Note inserted.")
+//                    } else {
+//                        Log.e(tag, "Note not inserted.")
+//                    }
+//
+//                    handler?.post {
+//                        var color = R.color.vermilion
+//                        if (result) {
+//                            color = R.color.green
+//                        }
+//                        indicator.setBackgroundColor(ContextCompat.getColor(this@NoteActivity, color))
+//                        sendMessage(result)
+//                    }
+//                }
 
             }
         }
@@ -138,19 +150,27 @@ class NoteActivity: ItemActivity() {
         } else {
             note?.title = getNoteTitle()
             note?.message = getNoteContent()
-            executor.execute {
-                var result = false
-                val param = note
-                param?.let {
-                    result = Db.Note.update(param) > 0
-                }
-                if (result) {
-                    Log.i(tag, "Note updated.")
-                } else {
-                    Log.e(tag, "Note not updated.")
-                }
-                sendMessage(result)
-            }
+
+            // Switching to intent service
+            val dbIntent = Intent(this@NoteActivity, DatabaseService::class.java)
+            dbIntent.putExtra(DatabaseService.EXTRA_ENTRY, note)
+            dbIntent.putExtra(DatabaseService.EXTRA_OPERATION, MODE.EDIT.mode)
+            startService(dbIntent)
+            sendMessage(true)
+
+//            executor.execute {
+//                var result = false
+//                val param = note
+//                param?.let {
+//                    result = Db.Note.update(param) > 0
+//                }
+//                if (result) {
+//                    Log.i(tag, "Note updated.")
+//                } else {
+//                    Log.e(tag, "Note not updated.")
+//                }
+//                sendMessage(result)
+//            }
         }
 
     }
